@@ -1,0 +1,6 @@
+#!/bin/sh
+
+echo $$ > /tmp/worker-a.pid
+echo WORKER_A_START
+sleep 10
+echo WORKER_A_DONE

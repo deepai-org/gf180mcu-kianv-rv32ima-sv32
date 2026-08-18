@@ -1,0 +1,14 @@
+#!/bin/sh
+
+mount -t proc proc /proc
+mount -t sysfs sysfs /sys
+hostname kianv
+
+echo
+echo "KianV RTL Linux ready"
+echo "Interactive BusyBox shell; type 'help' for built-in commands."
+echo
+
+export PS1='kianv# '
+stty -echo 2>/dev/null || true
+exec /bin/sh

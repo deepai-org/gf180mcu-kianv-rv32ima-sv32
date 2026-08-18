@@ -1,0 +1,16 @@
+#!/bin/sh
+
+read worker_a_pid < /tmp/worker-a.pid || exit 1
+read worker_b_pid < /tmp/worker-b.pid || exit 1
+
+# Use shell builtins to take a prompt snapshot of procfs.  Starting a full
+# `ps | grep` pipeline takes several modeled seconds on this multicycle core,
+# long enough for the shorter worker to exit before ps reads the process list.
+# Fields 1-3 of /proc/PID/stat are PID, command, and scheduler state.
+read actual_a command_a state_a rest < "/proc/$worker_a_pid/stat" || exit 1
+read actual_b command_b state_b rest < "/proc/$worker_b_pid/stat" || exit 1
+
+echo PROCESS_TABLE_BEGIN
+printf '%s %s /worker-a\n' "$actual_a" "$state_a"
+printf '%s %s /worker-b\n' "$actual_b" "$state_b"
+echo PROCESS_TABLE_END

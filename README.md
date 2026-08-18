@@ -15,6 +15,23 @@ verification command, expected runtime, and fidelity notes are documented in
 make -C sim/xv6
 ```
 
+## Run Linux in RTL simulation
+
+The same complete SoC RTL also boots the pinned KianV OpenSBI and Linux port
+with a BusyBox initramfs. Its self-checking UART test reaches a shell, runs
+`uname`, and starts two concurrent processes with different sleeps. A procfs
+snapshot and their completion order verify timer interrupts and scheduler
+context switches:
+
+```sh
+make -C sim/linux verify
+```
+
+The initial software build runs in a pinned ARM64 Docker environment. Generated
+artifacts remain ignored, while the exact revisions, build configuration,
+hardware-model boundaries, success markers, runtime estimate, and
+troubleshooting steps are in [`sim/linux/README.md`](sim/linux/README.md).
+
 ## Reproduce the submitted GDS
 
 The `reproduce-gf180-run1` branch is based on the immutable
