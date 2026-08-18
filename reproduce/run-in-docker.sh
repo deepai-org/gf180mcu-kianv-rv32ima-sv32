@@ -71,6 +71,7 @@ timeout --kill-after=2m "${FLOW_TIMEOUT:-24h}" docker run --rm \
     set -e
     status=0
     git config --global --add safe.directory /work
+    git config --global --add safe.directory /work/gf180mcu
     nix develop --extra-experimental-features "nix-command flakes" \
       --accept-flake-config --command bash reproduce/run.sh "$@" || status=$?
     for path in gf180mcu librelane/runs final img cocotb/sim_build; do

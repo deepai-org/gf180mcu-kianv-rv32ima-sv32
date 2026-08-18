@@ -85,6 +85,6 @@ case "$stage" in
   sim) preflight; simulate ;;
   gds) preflight; build_gds ;;
   verify) preflight; verify ;;
-  all) preflight; simulate; build_gds; verify ;;
+  all) preflight; build_gds; verify ;;
   *) die "unknown stage '$stage' (expected preflight, pdk, sim, gds, verify, or all)" ;;
 esac

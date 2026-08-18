@@ -26,10 +26,16 @@ The wrapper pins the ARM64 image manifest for Nix 2.24.11. The taped-out
 ./reproduce/run-in-docker.sh verify
 ```
 
-`all` runs these stages in order. The Nix store is retained in the Docker
-volume `kianv-gf180-nix-2-24-11`, so interrupted runs do not redownload the
-toolchain. LibreLane outputs remain under `librelane/runs/`; `final/` contains
-the copied sign-off outputs.
+`all` runs preflight, PDK acquisition, GDS generation, and verification. The
+`sim` stage exposes the tapeout tag's original testbench separately; it was
+disabled in the upstream tapeout CI and currently fails to elaborate because
+its source list is incomplete. It is not a prerequisite for reproducing the
+submitted physical artifact.
+
+The Nix store is retained in the Docker volume
+`kianv-gf180-nix-2-24-11`, so interrupted runs do not redownload the toolchain.
+LibreLane outputs remain under `librelane/runs/`; `final/` contains the copied
+sign-off outputs.
 
 The host wrapper permits one heavy job at a time and limits the container to
 28 CPUs, 96 GiB RAM, 104 GiB RAM plus swap, 8192 processes, and 24 hours.
