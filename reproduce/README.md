@@ -24,6 +24,7 @@ The wrapper pins the ARM64 image manifest for Nix 2.24.11. The taped-out
 ./reproduce/run-in-docker.sh sim
 ./reproduce/run-in-docker.sh gds
 ./reproduce/run-in-docker.sh verify
+./reproduce/run-in-docker.sh compare
 ```
 
 `all` runs preflight, PDK acquisition, GDS generation, and verification. The
@@ -56,6 +57,10 @@ d149a25bff5523c51018f0ba2bba006e7491e25d19fc7ac8b5175825cedc8a58  chip_top.gds.z
 09dd61160c252740fa5cb7efabcc98ddd5f0a179b436b7f2302e445f2f1cca3d  chip_top.gds
 ```
 
-A byte-for-byte match is the strongest result. A mismatch must be followed by
-layout XOR and sign-off report comparison before calling the reproduction
-equivalent.
+A byte-for-byte match is the strongest result. If the hashes differ, `verify`
+automatically extracts the submitted GDS to a temporary directory and runs the
+pinned KLayout layer-by-layer XOR. `compare` runs that geometric check directly.
+Temporary GDS, XML, and log files are removed when the comparison exits.
+
+See [RESULTS.md](RESULTS.md) for the recorded native ARM64 reproduction run,
+including sign-off results and the reference XOR outcome.

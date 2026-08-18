@@ -66,6 +66,7 @@ timeout --kill-after=2m "${FLOW_TIMEOUT:-24h}" docker run --rm \
   --env "HOST_GID=$HOST_GID" \
   --env "MIN_FREE_GIB=$MIN_FREE_GIB" \
   --env "MIN_MEMORY_GIB=$MIN_MEMORY_GIB" \
+  --env "XOR_THREADS=${XOR_THREADS:-28}" \
   --entrypoint /bin/sh \
   "$IMAGE" -lc '
     set -e

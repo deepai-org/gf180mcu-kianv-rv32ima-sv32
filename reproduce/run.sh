@@ -7,6 +7,7 @@ PDK_TAG=1.6.6
 PDK_COMMIT=fb4b8f59451d248ef5b310a593759f946a8f6ae8
 REFERENCE_ZIP_SHA=d149a25bff5523c51018f0ba2bba006e7491e25d19fc7ac8b5175825cedc8a58
 REFERENCE_GDS_SHA=09dd61160c252740fa5cb7efabcc98ddd5f0a179b436b7f2302e445f2f1cca3d
+COMPARE_WORK_DIR=
 
 die() {
   echo "error: $*" >&2
@@ -73,7 +74,54 @@ verify() {
   if printf '%s  %s\n' "$REFERENCE_GDS_SHA" final/gds/chip_top.gds | sha256sum -c -; then
     echo "generated GDS is byte-identical to the submitted reference"
   else
-    echo "generated GDS differs byte-for-byte; inspect sign-off reports and run layout XOR" >&2
+    echo "generated GDS differs byte-for-byte; running layout XOR" >&2
+    compare_reference
+  fi
+}
+
+compare_reference() {
+  test -f final/gds/chip_top.gds || die "final/gds/chip_top.gds is missing"
+
+  local work_dir xor_script xor_count
+  work_dir=$(mktemp -d "${TMPDIR:-/tmp}/kianv-reference-xor.XXXXXX")
+  COMPARE_WORK_DIR=$work_dir
+  cleanup_compare() {
+    case "$COMPARE_WORK_DIR" in
+      "${TMPDIR:-/tmp}"/kianv-reference-xor.*) rm -rf -- "$COMPARE_WORK_DIR" ;;
+      *) die "refusing to clean unexpected comparison path: $COMPARE_WORK_DIR" ;;
+    esac
+  }
+  trap cleanup_compare EXIT
+
+  python - "$work_dir/reference.gds" <<'PY'
+import shutil
+import sys
+import zipfile
+
+with zipfile.ZipFile("gds/chip_top.gds.zip") as archive:
+    with archive.open("chip_top.gds") as source, open(sys.argv[1], "wb") as target:
+        shutil.copyfileobj(source, target)
+PY
+
+  printf '%s  %s\n' "$REFERENCE_GDS_SHA" "$work_dir/reference.gds" | sha256sum -c -
+  xor_script=$(python -c \
+    'from pathlib import Path; import librelane; print(Path(librelane.__file__).parent / "scripts/klayout/xor.drc")')
+
+  ruby "$xor_script" \
+    --output "$work_dir/reference-xor.xml" \
+    --top chip_top \
+    --threads "${XOR_THREADS:-28}" \
+    --ignore "" \
+    "$work_dir/reference.gds" final/gds/chip_top.gds \
+    2>&1 | tee "$work_dir/reference-xor.log"
+
+  xor_count=$(awk '/Total XOR differences:/ {count=$NF} END {print count}' \
+    "$work_dir/reference-xor.log")
+  test -n "$xor_count" || die "KLayout XOR did not report a difference count"
+  if (( xor_count == 0 )); then
+    echo "generated GDS is geometrically identical to the submitted reference"
+  else
+    echo "generated GDS has $xor_count geometric XOR differences from the submitted reference" >&2
     return 2
   fi
 }
@@ -85,6 +133,7 @@ case "$stage" in
   sim) preflight; simulate ;;
   gds) preflight; build_gds ;;
   verify) preflight; verify ;;
+  compare) preflight; compare_reference ;;
   all) preflight; build_gds; verify ;;
-  *) die "unknown stage '$stage' (expected preflight, pdk, sim, gds, verify, or all)" ;;
+  *) die "unknown stage '$stage' (expected preflight, pdk, sim, gds, verify, compare, or all)" ;;
 esac
