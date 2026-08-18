@@ -4,6 +4,10 @@ Run date: 2026-08-18
 Run directory: `RUN_2026-08-18_04-35-16`  
 Host/container architecture: native `aarch64` / `linux/arm64`
 
+The run took approximately 5 hours 22 minutes from the first OpenROAD output
+to the copied final views while limited to 28 CPUs and 96 GiB RAM. Initial
+image and Nix downloads are not included in that interval.
+
 The pinned LibreLane flow completed with exit code 0 and copied all final
 views to `final/`. The generated layout is a clean implementation of the
 tagged tapeout inputs, but it is not the same geometry as the submitted GDS.
@@ -54,3 +58,30 @@ All hold corners and all TT/fast setup corners have zero negative slack. The
 LibreLane also reports max-slew/max-capacitance violations and 5,117
 unannotated nets. These warnings are retained rather than presenting the run
 as timing-clean at every characterized corner.
+
+The TT 3.30 V/25 C setup paths meet the 33 ns constraint for all three RC
+extractions:
+
+| RC extraction | Worst reported setup margin |
+| --- | ---: |
+| `min_tt_025C_3v30` | 3.352064 ns |
+| `nom_tt_025C_3v30` | 3.173984 ns |
+| `max_tt_025C_3v30` | 2.959187 ns |
+
+Electrical-constraint counts from `final/metrics.json` are:
+
+| Scope | Max slew violations | Max capacitance violations |
+| --- | ---: | ---: |
+| Nominal RC, TT 3.30 V/25 C | 6 | 1,126 |
+| Max RC, TT 3.30 V/25 C | 63 | 2,672 |
+| Worst reported corner (`max_ss_125C_3v00`) | 5,998 | 2,737 |
+
+These are per-corner violation counts, not magnitudes or sums across corners.
+
+## Limits of the upstream comparison
+
+The `GF180MCU_Tapeout_Dec2025` tag contains the submitted GDS but no original
+LibreLane `metrics.json`, ODB, DEF, SPEF, or STA reports. Therefore the values
+above cannot be compared numerically with the fabricated upstream layout. The
+GDS cell inventory suggests a different buffering result, but GDS structure
+alone is insufficient for equivalent parasitic STA.

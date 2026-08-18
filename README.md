@@ -21,12 +21,18 @@ The `reproduce-gf180-run1` branch is based on the immutable
 `GF180MCU_Tapeout_Dec2025` tag. Reproduction helpers do not alter the taped-out
 RTL or physical-design configuration.
 
-On a Linux host with Docker:
+Clean-machine ARM64 quick start:
 
 ```sh
+git clone --branch reproduce-gf180-run1 \
+  https://github.com/deepai-org/gf180mcu-kianv-rv32ima-sv32.git
+cd gf180mcu-kianv-rv32ima-sv32
 ./reproduce/run-in-docker.sh preflight
 ./reproduce/run-in-docker.sh all
 ```
 
-The full LibreLane run can take several hours. Each stage can also be run
-separately; see [reproduce/README.md](reproduce/README.md).
+The recorded full run took approximately 5 hours 22 minutes after tool
+download. It completed successfully but produced a physically different,
+sign-off-clean routed layout rather than an identical copy of the submitted
+GDS. Each stage, expected result, exit status, and troubleshooting procedure is
+documented in [reproduce/README.md](reproduce/README.md).
