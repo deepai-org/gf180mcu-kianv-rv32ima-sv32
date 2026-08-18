@@ -1,0 +1,18 @@
+diff --git a/linux_socs/kianv_mc_rv32ima_sv32/os/xv6/kernel/memlayout.h b/linux_socs/kianv_mc_rv32ima_sv32/os/xv6/kernel/memlayout.h
+--- a/linux_socs/kianv_mc_rv32ima_sv32/os/xv6/kernel/memlayout.h
++++ b/linux_socs/kianv_mc_rv32ima_sv32/os/xv6/kernel/memlayout.h
+@@ -43 +43,3 @@
+-#define PHYSTOP (KERNBASE + 1024*1024*8)//512*1024*2)
++// Keep RTL simulation startup practical: kinit() byte-fills every free page.
++// The physical design still exposes the complete 32 MiB SDRAM.
++#define PHYSTOP (KERNBASE + 1024*1024*2)
+diff --git a/linux_socs/kianv_mc_rv32ima_sv32/os/xv6/kernel/sdcard.c b/linux_socs/kianv_mc_rv32ima_sv32/os/xv6/kernel/sdcard.c
+--- a/linux_socs/kianv_mc_rv32ima_sv32/os/xv6/kernel/sdcard.c
++++ b/linux_socs/kianv_mc_rv32ima_sv32/os/xv6/kernel/sdcard.c
+@@ -105 +105,5 @@
+-  dt = dt * 32;
++  // The behavioral SD card responds immediately. Keep a small delay to
++  // exercise the counter while avoiding minutes of host time in init.
++  if (dt > 1)
++    dt = 1;
++  dt = dt * 32;

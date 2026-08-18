@@ -4,6 +4,17 @@ A 32-bit RISC-V Linux SoC taped out on GF180MCU.
 
 Really glad to get the MPW opportunity from [wafer.space](https://wafer.space)!
 
+## Run xv6 in RTL simulation
+
+The complete tapeout SoC RTL now boots the matching KianV xv6 port to a shell
+under Verilator. The reproducible software build, pin-level SDRAM/SPI models,
+verification command, expected runtime, and fidelity notes are documented in
+[`sim/xv6/README.md`](sim/xv6/README.md). The one-command entry point is:
+
+```sh
+make -C sim/xv6
+```
+
 ## Reproduce the submitted GDS
 
 The `reproduce-gf180-run1` branch is based on the immutable
