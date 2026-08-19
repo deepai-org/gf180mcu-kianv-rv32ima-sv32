@@ -53,3 +53,10 @@ download. It completed successfully but produced a physically different,
 sign-off-clean routed layout rather than an identical copy of the submitted
 GDS. Each stage, expected result, exit status, and troubleshooting procedure is
 documented in [reproduce/README.md](reproduce/README.md).
+
+## Upstream contribution status
+
+The fixes and reproducibility work that have not been submitted upstream are
+tracked in [UPSTREAMING.md](UPSTREAMING.md), together with proposed PR splits,
+verification evidence, remaining preparation, and the current submission
+blocker.
