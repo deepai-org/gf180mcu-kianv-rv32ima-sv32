@@ -400,10 +400,14 @@ int main(int argc, char **argv) {
     // Ignore power-up/reset transients before the SoC's long reset releases.
     if (cycle > 350000) uart.sample(top.uart_tx);
     if (cycle != 0 && cycle % 10000000 == 0) {
+#ifdef LOOM_IMPORTED_RTL
+      std::cerr << "[sim] cycle=" << cycle << "\n";
+#else
       std::cerr << "[sim] cycle=" << cycle << " pc=0x" << std::hex
                 << top.rootp->soc__DOT__kianv_I__DOT__datapath_unit_I__DOT__PC
                 << " mem=0x" << top.rootp->soc__DOT__kianv_I__DOT__cpu_mem_addr
                 << std::dec << "\n";
+#endif
     }
     if (uart.booted()) {
       std::cerr << "\n[sim] xv6 shell reached after " << cycle << " cycles\n";

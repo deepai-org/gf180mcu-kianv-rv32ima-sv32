@@ -56,6 +56,12 @@ under the ignored `sim/linux/build/` directory. `SHA256SUMS` records the three
 principal artifacts. Make tracks the artifact inputs, so repeated `build`,
 `run`, and `verify` invocations do not enter Docker unless a build input changed.
 
+A port-compatible generated `soc` can reuse the same harness with
+`RTL=/absolute/path/to/soc.v`, a separate `OBJDIR`, and
+`EXTRA_CFLAGS=-DLOOM_IMPORTED_RTL`. The generated design must use the same
+`SIM` elaboration as this target; the macro only removes progress diagnostics
+that depend on the source RTL's internal Verilator names.
+
 Useful overrides:
 
 ```sh

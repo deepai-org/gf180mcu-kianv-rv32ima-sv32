@@ -34,6 +34,19 @@ Generated files are contained under `sim/xv6/build/` and ignored by Git.
 The captured console is `sim/xv6/build/uart.log`. Use `make -C sim/xv6 clean`
 to remove the simulator, fetched source, software artifacts, and logs.
 
+For a port-compatible generated RTL file, override `RTL` and use a separate
+ignored object directory. `LOOM_IMPORTED_RTL` disables only the progress
+message's dependency on Verilator's source-specific internal names:
+
+```sh
+make -C sim/xv6 verify RTL=/absolute/path/to/soc.v \
+  OBJDIR=build/generated-obj EXTRA_CFLAGS=-DLOOM_IMPORTED_RTL
+```
+
+The generated RTL must match this harness's `SIM` elaboration. In particular,
+the simulation UART divider resets to 174; the taped-out configuration resets
+it to 1 and expects software to configure it.
+
 ## Expected runtime and result
 
 The reference run on a 32-vCPU ARM64 host reached the shell after

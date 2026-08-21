@@ -9,7 +9,7 @@ XV6_KERNEL ?= $(BUILD)/xv6.bin
 XV6_FS ?= $(BUILD)/fs.img
 MAX_CYCLES ?= 300000000
 
-RTL := \
+RTL ?= \
 	$(ROOT)/src/cache.v \
 	$(ROOT)/src/cache_sram_D$$.v \
 	$(ROOT)/src/cache_sram_I$$.v \
@@ -71,7 +71,7 @@ $(OBJDIR)/V$(TOP): sim_main.cpp $(RTL)
 		-Wno-fatal -Wno-PINMISSING -Wno-TIMESCALEMOD -Wno-BLKANDNBLK \
 		-DSIM -DNUM_ENTRIES_ITLB=32 -DNUM_ENTRIES_DTLB=32 \
 		-I$(ROOT)/src -I$(ROOT)/src/kianv_harris_edition \
-		-CFLAGS "-O3 -std=c++17" \
+		-CFLAGS "-O3 -std=c++17 $(EXTRA_CFLAGS)" \
 		$(RTL) $(abspath sim_main.cpp)
 
 build: $(OBJDIR)/V$(TOP)

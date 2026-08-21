@@ -383,6 +383,9 @@ int main(int argc, char **argv) {
     if (cycle > 350000) uart_output.sample(top.uart_tx);
 
     if (cycle != 0 && cycle % 10000000 == 0) {
+#ifdef LOOM_IMPORTED_RTL
+      std::cerr << "[sim] cycle=" << cycle << "\n";
+#else
       std::cerr << "[sim] cycle=" << cycle << " pc=0x" << std::hex
                 << top.rootp->soc__DOT__kianv_I__DOT__datapath_unit_I__DOT__PC
                 << " mem=0x" << top.rootp->soc__DOT__kianv_I__DOT__cpu_mem_addr
@@ -394,6 +397,7 @@ int main(int argc, char **argv) {
                 << " stval=0x"
                 << top.rootp->soc__DOT__kianv_I__DOT__datapath_unit_I__DOT__csr_exception_handler_I__DOT__csr_unit_inst__DOT__stval
                 << std::dec << "\n";
+#endif
     }
     if (test_stage == TestStage::kWaitForScheduler && uart_input.empty() &&
         uart_output.contains("WORKER_A_DONE") &&

@@ -290,6 +290,7 @@ module sv32_table_walk #(
   end
 
 `ifdef SIM
+`ifndef SYNTHESIS
 
   integer stuck;
   always @(posedge clk) begin
@@ -303,6 +304,7 @@ module sv32_table_walk #(
       end
     end
   end
+`endif
 `endif
 
 endmodule
