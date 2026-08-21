@@ -1,0 +1,315 @@
+# Copyright 2025 LibreLane Contributors
+#
+# Adapted from OpenLane
+#
+# Copyright 2020-2022 Efabless Corporation
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+source $::env(SCRIPTS_DIR)/openroad/common/io.tcl
+source $::env(SCRIPTS_DIR)/openroad/common/set_global_connections.tcl
+set_global_connections
+
+set secondary []
+foreach vdd $::env(VDD_NETS) gnd $::env(GND_NETS) {
+    if { $vdd != $::env(VDD_NET)} {
+        lappend secondary $vdd
+
+        set db_net [[ord::get_db_block] findNet $vdd]
+        if {$db_net == "NULL"} {
+            set net [odb::dbNet_create [ord::get_db_block] $vdd]
+            $net setSpecial
+            $net setSigType "POWER"
+        }
+    }
+
+    if { $gnd != $::env(GND_NET)} {
+        lappend secondary $gnd
+
+        set db_net [[ord::get_db_block] findNet $gnd]
+        if {$db_net == "NULL"} {
+            set net [odb::dbNet_create [ord::get_db_block] $gnd]
+            $net setSpecial
+            $net setSigType "GROUND"
+        }
+    }
+}
+
+set_voltage_domain -name CORE -power $::env(VDD_NET) -ground $::env(GND_NET) \
+    -secondary_power $secondary
+
+
+
+if { $::env(PDN_MULTILAYER) == 1 } {
+
+    set arg_list [list]
+    if { $::env(PDN_ENABLE_PINS) } {
+        lappend arg_list -pins "$::env(PDN_VERTICAL_LAYER) $::env(PDN_HORIZONTAL_LAYER)"
+    }
+
+    define_pdn_grid \
+        -name stdcell_grid \
+        -starts_with POWER \
+        -voltage_domain CORE \
+        {*}$arg_list
+
+    set arg_list [list]
+    append_if_equals arg_list PDN_EXTEND_TO "core_ring" -extend_to_core_ring
+    append_if_equals arg_list PDN_EXTEND_TO "boundary" -extend_to_boundary
+
+    add_pdn_stripe \
+        -grid stdcell_grid \
+        -layer $::env(PDN_VERTICAL_LAYER) \
+        -width $::env(PDN_VWIDTH) \
+        -pitch $::env(PDN_VPITCH) \
+        -offset $::env(PDN_VOFFSET) \
+        -spacing $::env(PDN_VSPACING) \
+        -starts_with POWER \
+        {*}$arg_list
+
+    add_pdn_stripe \
+        -grid stdcell_grid \
+        -layer $::env(PDN_HORIZONTAL_LAYER) \
+        -width $::env(PDN_HWIDTH) \
+        -pitch $::env(PDN_HPITCH) \
+        -offset $::env(PDN_HOFFSET) \
+        -spacing $::env(PDN_HSPACING) \
+        -starts_with POWER \
+        {*}$arg_list
+
+    add_pdn_connect \
+        -grid stdcell_grid \
+        -layers "$::env(PDN_VERTICAL_LAYER) $::env(PDN_HORIZONTAL_LAYER)"
+} else {
+
+    set arg_list [list]
+    if { $::env(PDN_ENABLE_PINS) } {
+        lappend arg_list -pins "$::env(PDN_VERTICAL_LAYER)"
+    }
+
+    define_pdn_grid \
+        -name stdcell_grid \
+        -starts_with POWER \
+        -voltage_domain CORE \
+        {*}$arg_list
+
+    set arg_list [list]
+    append_if_equals arg_list PDN_EXTEND_TO "core_ring" -extend_to_core_ring
+    append_if_equals arg_list PDN_EXTEND_TO "boundary" -extend_to_boundary
+
+    add_pdn_stripe \
+        -grid stdcell_grid \
+        -layer $::env(PDN_VERTICAL_LAYER) \
+        -width $::env(PDN_VWIDTH) \
+        -pitch $::env(PDN_VPITCH) \
+        -offset $::env(PDN_VOFFSET) \
+        -spacing $::env(PDN_VSPACING) \
+        -starts_with POWER \
+        {*}$arg_list
+}
+
+# Adds the standard cell rails if enabled.
+if { $::env(PDN_ENABLE_RAILS) == 1 } {
+    add_pdn_stripe \
+        -grid stdcell_grid \
+        -layer $::env(PDN_RAIL_LAYER) \
+        -width $::env(PDN_RAIL_WIDTH) \
+        -followpins
+
+    add_pdn_connect \
+        -grid stdcell_grid \
+        -layers "$::env(PDN_RAIL_LAYER) $::env(PDN_VERTICAL_LAYER)"
+}
+
+
+# Adds the core ring if enabled.
+if { $::env(PDN_CORE_RING) == 1 } {
+    if { $::env(PDN_MULTILAYER) == 1 } {
+        set arg_list [list]
+        append_if_flag arg_list PDN_CORE_RING_ALLOW_OUT_OF_DIE -allow_out_of_die
+        append_if_flag arg_list PDN_CORE_RING_CONNECT_TO_PADS -connect_to_pads
+        append_if_equals arg_list PDN_EXTEND_TO "boundary" -extend_to_boundary
+
+        set pdn_core_vertical_layer $::env(PDN_VERTICAL_LAYER)
+        set pdn_core_horizontal_layer $::env(PDN_HORIZONTAL_LAYER)
+
+        if { [info exists ::env(PDN_CORE_VERTICAL_LAYER)] } {
+            set pdn_core_vertical_layer $::env(PDN_CORE_VERTICAL_LAYER)
+        }
+
+        if { [info exists ::env(PDN_CORE_HORIZONTAL_LAYER)] } {
+            set pdn_core_horizontal_layer $::env(PDN_CORE_HORIZONTAL_LAYER)
+        }
+
+        add_pdn_ring \
+            -grid stdcell_grid \
+            -layers "$pdn_core_vertical_layer $pdn_core_horizontal_layer" \
+            -widths "$::env(PDN_CORE_RING_VWIDTH) $::env(PDN_CORE_RING_HWIDTH)" \
+            -spacings "$::env(PDN_CORE_RING_VSPACING) $::env(PDN_CORE_RING_HSPACING)" \
+            -core_offset "$::env(PDN_CORE_RING_VOFFSET) $::env(PDN_CORE_RING_HOFFSET)" \
+            {*}$arg_list
+
+        if { [info exists ::env(PDN_CORE_VERTICAL_LAYER)] } {
+            add_pdn_connect \
+                -grid stdcell_grid \
+                -layers "$::env(PDN_CORE_VERTICAL_LAYER) $::env(PDN_HORIZONTAL_LAYER)"
+        }
+
+        if { [info exists ::env(PDN_CORE_HORIZONTAL_LAYER)] } {
+            add_pdn_connect \
+                -grid stdcell_grid \
+                -layers "$::env(PDN_CORE_HORIZONTAL_LAYER) $::env(PDN_VERTICAL_LAYER)"
+        }
+
+        if { [info exists ::env(PDN_CORE_VERTICAL_LAYER)] && [info exists ::env(PDN_CORE_HORIZONTAL_LAYER)] } {
+            add_pdn_connect \
+                -grid stdcell_grid \
+                -layers "$::env(PDN_CORE_VERTICAL_LAYER) $::env(PDN_CORE_HORIZONTAL_LAYER)"
+        }
+
+    } else {
+        throw APPLICATION "PDN_CORE_RING cannot be used when PDN_MULTILAYER is set to false."
+    }
+}
+# =====================================================================
+#  SRAM-MACROS N / S / W / E
+# =====================================================================
+
+# -------- TOP (N) – 5 × I$ way0 --------
+set sram_N {
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_0.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_1.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_2.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_3.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_4.u_prim
+}
+
+# -------- BOTTOM (S) – 1 × D$ + 3 × I$ way1 --------
+set sram_S {
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_0.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_6.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_5.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_4.u_prim
+}
+
+# -------- WEST (W) – 6 × D$ --------
+set sram_W {
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_1.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_2.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_3.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_4.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_5.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_6.u_prim
+}
+
+# -------- EAST (E) – 4 × I$ way1 + 2 × I$ way0 --------
+set sram_E {
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_3.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_2.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_1.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_0.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_6.u_prim
+    i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_5.u_prim
+}
+
+puts "SRAM Nord (N):"
+puts $sram_N
+puts "\nSRAM Süd  (S):"
+puts $sram_S
+puts "\nSRAM West (W):"
+puts $sram_W
+puts "\nSRAM Ost  (E):"
+puts $sram_E
+
+# =====================================================================
+#  PDN-GRID NORTH + SOUTH
+# =====================================================================
+
+define_pdn_grid \
+    -macro \
+    -instances "$sram_N $sram_S" \
+    -name sram_macros_NS \
+    -starts_with POWER \
+    -halo "$::env(PDN_HORIZONTAL_HALO) $::env(PDN_VERTICAL_HALO)"
+
+add_pdn_connect \
+    -grid sram_macros_NS \
+    -layers "$::env(PDN_VERTICAL_LAYER) $::env(PDN_HORIZONTAL_LAYER)"
+
+add_pdn_connect \
+    -grid sram_macros_NS \
+    -layers "$::env(PDN_VERTICAL_LAYER) Metal3"
+
+# Add stripes on W/E edges of SRAM
+add_pdn_stripe \
+    -grid sram_macros_NS \
+    -layer Metal4 \
+    -width 2.36 \
+    -offset 1.18 \
+    -spacing 0.28 \
+    -pitch 426.86 \
+    -starts_with GROUND \
+    -number_of_straps 2
+
+# =====================================================================
+#  PDN-GRID WEST + EAST
+# =====================================================================
+# Since the above stripes block the top level PDN at Metal4, add some more stripes
+# to improve the PDN's integrity and ensure a better connection for the macro.
+add_pdn_stripe \
+    -grid sram_macros_NS \
+    -layer Metal4 \
+    -width 4.00 \
+    -offset 65.93 \
+    -spacing 0.28 \
+    -pitch 50 \
+    -starts_with GROUND \
+    -number_of_straps 7
+
+define_pdn_grid \
+    -macro \
+    -instances "$sram_W $sram_E" \
+    -name sram_macros_WE \
+    -starts_with POWER \
+    -halo "$::env(PDN_HORIZONTAL_HALO) $::env(PDN_VERTICAL_HALO)"
+
+add_pdn_connect \
+    -grid sram_macros_WE \
+    -layers "$::env(PDN_VERTICAL_LAYER) $::env(PDN_HORIZONTAL_LAYER)"
+
+add_pdn_connect \
+    -grid sram_macros_WE \
+    -layers "$::env(PDN_VERTICAL_LAYER) Metal3"
+
+# Add stripes on W/E edges of SRAM
+add_pdn_stripe \
+    -grid sram_macros_WE \
+    -layer Metal4 \
+    -width 2.36 \
+    -offset 1.18 \
+    -spacing 0.28 \
+    -pitch 479.88 \
+    -starts_with GROUND \
+    -number_of_straps 2
+
+# Since the above stripes block the top level PDN at Metal4, add some more stripes
+# to improve the PDN's integrity and ensure a better connection for the macro.
+add_pdn_stripe \
+    -grid sram_macros_WE \
+    -layer Metal4 \
+    -width 4.00 \
+    -offset 46.48 \
+    -spacing 0.28 \
+    -pitch 48.48 \
+    -starts_with GROUND \
+    -number_of_straps 9

@@ -1,0 +1,99 @@
+{
+  "generator": {
+    "loom_commit": "6222955d60b0290f44440a94d83c3102ce7350e2",
+    "path": "/home/ubuntu/lean_hw/scripts/kianv_physical_handoff.py",
+    "sha256": "2cf49a8d9063549aa75df37f83f0907ddbe28e2e4485fa9d009a7307510e0981"
+  },
+  "inputs": {
+    "foundry_wrapper": {
+      "path": "src/gf180mcu_fd_ip_sram__sram512x8m8wm1_wrapper.v",
+      "sha256": "517bd60a435e6fd7573ec80d1057ed464b929866a65161918977ca1206f440f0"
+    },
+    "librelane_config": {
+      "path": "librelane/config.yaml",
+      "sha256": "6f69e17ae6d0d87f02e703059d739dee87d29fa140c52509bdcaf9d37d0f418a"
+    },
+    "neutral_rtl": {
+      "path": "/home/ubuntu/lean_hw/build/kianv-physical-proof/conversion/chip_core.loom.v",
+      "sha256": "87029f94fd18ac30328ece3281410128453a42ba6f3b592a78fa04c8099ae83d"
+    },
+    "package": {
+      "path": "/home/ubuntu/lean_hw/build/kianv-physical-proof/conversion/chip_core.package.import.json",
+      "sha256": "2a84a63d4c019b05b4ff006dec34031a696ef3892d754b9a11e3d97082703399"
+    },
+    "pdn_config": {
+      "path": "librelane/pdn_cfg.tcl",
+      "sha256": "b8284165c25bc60a6e0ac76acb90e3074316d8bbe4b8b62c71701f3d3aa82278"
+    },
+    "physical_helpers": {
+      "path": "src/loom_physical_helpers.v",
+      "sha256": "e42fbb4d382c9b5528b1ec6b5a449ac24d9787d74ef98282476bebb5ef102f89"
+    }
+  },
+  "kind": "kianv_loom_gf180_physical_handoff",
+  "outputs": {
+    "librelane_config": {
+      "path": "librelane/config.loom.yaml",
+      "sha256": "54da2976e3308cf99cf6650a265854fc96b80d607605bbc23a0edbf64e76a832"
+    },
+    "pdn_config": {
+      "path": "librelane/pdn_cfg.loom.tcl",
+      "sha256": "ccb02766bb8430d81ec82b846396835201dc33451db2de41ff1b9626e829d86c"
+    },
+    "physical_rtl": {
+      "path": "src/chip_core.loom.v",
+      "sha256": "a7cc437452ec765ffbe79372f0cb5d83b311102a5d4f02ba91d5129c87cb3d14"
+    }
+  },
+  "physical_options": {
+    "GRT_MACRO_EXTENSION": 1
+  },
+  "power_modules": [
+    "$paramod$7478c16320694f6488495fa2a1d26fc9b2532d6c\\cache_sram_D$",
+    "$paramod$7478c16320694f6488495fa2a1d26fc9b2532d6c\\cache_sram_I$",
+    "$paramod\\cache\\BYPASS_CACHES=1'0",
+    "chip_core",
+    "dcache",
+    "icache",
+    "soc",
+    "sram_sp_gf180_512x56"
+  ],
+  "schema": 1,
+  "specialized_parameters": {
+    "NUM_BIDIR_PADS": 54
+  },
+  "sram_input_antenna_diodes": {
+    "cell": "gf180mcu_fd_sc_mcu9t5v0__antenna",
+    "instance": "u_d6_antenna",
+    "instances": 21,
+    "pin": "D[6]"
+  },
+  "sram_instances": 21,
+  "sram_path_translation": {
+    "i_chip_core.u_soc.cache_I.gen_cached.dcache_I.cache_D.u_mem.u_tile_0.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_0.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.dcache_I.cache_D.u_mem.u_tile_1.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_1.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.dcache_I.cache_D.u_mem.u_tile_2.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_2.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.dcache_I.cache_D.u_mem.u_tile_3.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_3.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.dcache_I.cache_D.u_mem.u_tile_4.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_4.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.dcache_I.cache_D.u_mem.u_tile_5.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_5.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.dcache_I.cache_D.u_mem.u_tile_6.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_6.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.icache_I.cache_I.u_mem_way0.u_tile_0.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_0.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.icache_I.cache_I.u_mem_way0.u_tile_1.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_1.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.icache_I.cache_I.u_mem_way0.u_tile_2.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_2.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.icache_I.cache_I.u_mem_way0.u_tile_3.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_3.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.icache_I.cache_I.u_mem_way0.u_tile_4.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_4.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.icache_I.cache_I.u_mem_way0.u_tile_5.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_5.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.icache_I.cache_I.u_mem_way0.u_tile_6.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_6.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.icache_I.cache_I.u_mem_way1.u_tile_0.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_0.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.icache_I.cache_I.u_mem_way1.u_tile_1.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_1.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.icache_I.cache_I.u_mem_way1.u_tile_2.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_2.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.icache_I.cache_I.u_mem_way1.u_tile_3.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_3.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.icache_I.cache_I.u_mem_way1.u_tile_4.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_4.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.icache_I.cache_I.u_mem_way1.u_tile_5.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_5.u_prim",
+    "i_chip_core.u_soc.cache_I.gen_cached.icache_I.cache_I.u_mem_way1.u_tile_6.u_prim": "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_6.u_prim"
+  },
+  "sram_primitive": "gf180mcu_fd_ip_sram__sram512x8m8wm1",
+  "synthesis_options": {
+    "SYNTH_SHARE_RESOURCES": false
+  }
+}

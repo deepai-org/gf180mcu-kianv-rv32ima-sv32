@@ -1,0 +1,417 @@
+meta:
+  version: 3
+  flow: Chip
+  substituting_steps:
+
+    # Disable KLayout DRC
+    #KLayout.DRC: null
+    #Checker.KLayoutDRC: null
+
+    # Disable KLayout antenna check
+    #KLayout.Antenna: null
+    #Checker.KLayoutAntenna: null
+
+    # Disable KLayout density check
+    #KLayout.Density: null
+    #Checker.KLayoutDensity: null
+
+    # Save time during development
+    # Enable for sign-off
+    #OpenROAD.IRDropReport: null
+    #Magic.DRC: null
+    #Checker.MagicDRC: null
+    #KLayout.XOR: null
+    #Netgen.LVS: null
+    #Checker.LVS: null
+
+DESIGN_NAME: chip_top
+VERILOG_FILES:
+  - dir::../src/chip_core.loom.v
+  - dir::../src/loom_physical_helpers.v
+  - dir::../src/chip_top.sv
+
+SYNTH_STRATEGY: "AREA 3"
+SYNTH_SHARE_RESOURCES: false
+#SYNTH_EXCLUDED_CELL_FILE: dir::synth_exclude.cells
+
+VERILOG_DEFINES:
+  - "SYSTEM_CLK=20000000"
+  - "TRP_NS=15"
+  - "TRCD_NS=15"
+  - "TRFC_NS=66"
+  - "TWR_NS=15"
+  - "CAS=2"
+  - "TREFI_NS=7800"
+  - "SDRAM_SIZE=33554432"
+  - "NUM_ENTRIES_ITLB=32"
+  - "NUM_ENTRIES_DTLB=32"
+  - "SYNTHESIS"
+  - "GF180"
+  - "BYPASS_CACHES=1'b0"
+  - "SLOT_1X1"
+# Enable plugin for better SystemVerilog support
+# USE_SLANG: True
+# SLANG_ARGUMENTS: ['--keep-hierarchy']
+
+# Slightly smaller file sizes
+PRIMARY_GDSII_STREAMOUT_TOOL: klayout
+
+# SDC files
+PNR_SDC_FILE: dir::chip_top.sdc
+SIGNOFF_SDC_FILE: dir::chip_top.sdc
+FALLBACK_SDC: dir::chip_top.sdc
+
+# Power / ground nets
+VDD_NETS:
+- VDD
+GND_NETS:
+- VSS
+
+# We need to add gf180mcu_fd_io__bi_24t
+# due to the unused Y output for output only pads
+IGNORE_DISCONNECTED_MODULES:
+- gf180mcu_fd_io__bi_24t
+- gf180mcu_ws_ip__id
+- gf180mcu_ws_ip__logo
+- gf180mcu_ws_ip__names
+- gf180mcu_ws_ip__credits
+
+# Clock
+CLOCK_PORT: clk_PAD
+CLOCK_NET: clk_pad/Y
+
+#CLOCK_PERIOD: 62
+#CLOCK_PERIOD: 50
+CLOCK_PERIOD: 33 # 30 MHz
+
+# re-defined in slots/slot_1x1.yaml
+STD_CELL_LIBRARY: gf180mcu_fd_sc_mcu9t5v0
+
+
+# Technology libs
+LIB:
+  "*_tt_025C_3v30":
+    - pdk_dir::libs.ref/gf180mcu_fd_sc_mcu9t5v0/lib/gf180mcu_fd_sc_mcu9t5v0__tt_025C_3v30.lib
+    - pdk_dir::libs.ref/gf180mcu_fd_io/lib/gf180mcu_fd_io__tt_025C_3v30.lib
+    - pdk_dir::libs.ref/gf180mcu_fd_io/lib/gf180mcu_ws_io__tt_025C_5v00.lib
+
+  "*_ss_n40C_3v00":
+    - pdk_dir::libs.ref/gf180mcu_fd_sc_mcu9t5v0/lib/gf180mcu_fd_sc_mcu9t5v0__ss_n40C_3v00.lib
+    - pdk_dir::libs.ref/gf180mcu_fd_io/lib/gf180mcu_fd_io__ss_125C_2v97.lib
+    - pdk_dir::libs.ref/gf180mcu_fd_io/lib/gf180mcu_ws_io__ss_125C_4v50.lib
+
+  "*_ss_125C_3v00":
+    - pdk_dir::libs.ref/gf180mcu_fd_sc_mcu9t5v0/lib/gf180mcu_fd_sc_mcu9t5v0__ss_125C_3v00.lib
+    - pdk_dir::libs.ref/gf180mcu_fd_io/lib/gf180mcu_fd_io__ss_125C_2v97.lib
+    - pdk_dir::libs.ref/gf180mcu_fd_io/lib/gf180mcu_ws_io__ss_125C_4v50.lib
+
+  "*_ff_n40C_3v60":
+    - pdk_dir::libs.ref/gf180mcu_fd_sc_mcu9t5v0/lib/gf180mcu_fd_sc_mcu9t5v0__ff_n40C_3v60.lib
+    - pdk_dir::libs.ref/gf180mcu_fd_io/lib/gf180mcu_fd_io__ff_n40C_3v63.lib
+    - pdk_dir::libs.ref/gf180mcu_fd_io/lib/gf180mcu_ws_io__ff_n40C_5v50.lib
+
+  "*_ff_125C_3v60":
+    - pdk_dir::libs.ref/gf180mcu_fd_sc_mcu9t5v0/lib/gf180mcu_fd_sc_mcu9t5v0__ff_125C_3v60.lib
+    - pdk_dir::libs.ref/gf180mcu_fd_io/lib/gf180mcu_fd_io__ff_125C_3v63.lib
+    - pdk_dir::libs.ref/gf180mcu_fd_io/lib/gf180mcu_ws_io__ff_n40C_5v50.lib
+
+
+# Corners
+STA_CORNERS:
+  - nom_tt_025C_3v30
+  - nom_ss_n40C_3v00
+  - nom_ss_125C_3v00
+  - nom_ff_n40C_3v60
+  - nom_ff_125C_3v60
+  - min_tt_025C_3v30
+  - min_ss_n40C_3v00
+  - min_ss_125C_3v00
+  - min_ff_n40C_3v60
+  - min_ff_125C_3v60
+  - max_tt_025C_3v30
+  - max_ss_n40C_3v00
+  - max_ss_125C_3v00
+  - max_ff_n40C_3v60
+  - max_ff_125C_3v60
+
+CTS_CLK_BUFFERS:
+  - "gf180mcu_fd_sc_mcu9t5v0__clkbuf_16"
+
+# Fix hold violations
+PL_RESIZER_HOLD_SLACK_MARGIN: 0.6
+GRT_RESIZER_HOLD_SLACK_MARGIN: 0.5
+#
+DEFAULT_CORNER: nom_tt_025C_3v30
+
+# Increase for more logic
+# on your die
+#PL_TARGET_DENSITY_PCT: 25
+#GRT_ALLOW_CONGESTION: true
+# Increase for more logic
+# on your die
+
+PL_TARGET_DENSITY_PCT: 30.2
+
+GRT_ALLOW_CONGESTION: true
+
+# Fix antenna violations after DRT
+DRT_ANTENNA_REPAIR_ITERS: 10
+DRT_ANTENNA_MARGIN: 10 # %
+GRT_MACRO_EXTENSION: 1
+PL_MAX_DISPLACEMENT_X: 800
+PL_MAX_DISPLACEMENT_Y: 500
+
+# PDN - Straps
+PDN_VWIDTH: 5
+PDN_HWIDTH: 5
+PDN_VSPACING: 1
+PDN_HSPACING: 1
+PDN_VPITCH: 75
+PDN_HPITCH: 75
+
+# PDN - Core ring
+PDN_CORE_RING: True
+# Maximum metal width without slotting: 30um
+PDN_CORE_RING_VWIDTH: 25
+PDN_CORE_RING_HWIDTH: 25
+PDN_CORE_RING_CONNECT_TO_PADS: True
+PDN_ENABLE_PINS: False
+PDN_CORE_VERTICAL_LAYER: Metal2
+PDN_CORE_HORIZONTAL_LAYER: Metal3
+
+# Due to OpenROAD bug
+# https://github.com/The-OpenROAD-Project/OpenROAD/issues/8229
+#PL_TIME_DRIVEN: False
+#PL_ROUTABILITY_DRIVEN: False
+
+# Do not error on magic DRC violations
+# Note: Passing magic DRC is not required for the submission.
+# However, it is recommended to fix or carefully review all violations.
+ERROR_ON_MAGIC_DRC: False
+
+# Prevent false positive DRC errors in I/O cells
+MAGIC_GDS_FLATGLOB:
+# For contacts
+- "*_CDNS_*"
+# Foundry provided SRAMs
+- "*$$*"
+- "M1_N*"
+- "M1_P*"
+- "M2_M1*"
+- "M3_M2*"
+- "nmos_5p0*"
+- "nmos_1p2*"
+- "pmos_5p0*"
+- "pmos_1p2*"
+- "via1_*"
+- "ypass_gate*"
+- "G_ring_*"
+# These additional cells must be flattened to get rid of 3.3V devices
+# (DUALGATE drawn into high-level cells)
+- "dcap_103*"
+- "din_*"
+- "mux821_*"
+- "rdummy_*"
+- "pmoscap_*"
+- "xdec_*"
+- "ypredec*"
+- "xpredec*"
+- "prexdec_*"
+- "xdec8_*"
+- "xdec16_*"
+- "xdec32_*"
+- "sa_*"
+
+# Since we cannot meet the minimum density limit on Metal2,
+# ignore active metal on previous and subsequent layers
+# (DM.5_DM.7 and DM.4_DM.6). Dummy metal is moved to active
+# metal during the precheck.
+KLAYOUT_FILLER_OPTIONS:
+  Metal2_ignore_active: true
+
+# Because we have multiple power pads for one power domain
+MAGIC_EXT_UNIQUE: notopports
+
+MACROS:
+  gf180mcu_ws_ip__id:
+    gds:
+      - dir::../ip/gf180mcu_ws_ip__id/gds/gf180mcu_ws_ip__id.gds
+    lef:
+      - dir::../ip/gf180mcu_ws_ip__id/lef/gf180mcu_ws_ip__id.lef
+    vh:
+      - dir::../ip/gf180mcu_ws_ip__id/vh/gf180mcu_ws_ip__id.v
+    lib:
+      "*":
+        - dir::../ip/gf180mcu_ws_ip__id/lib/gf180mcu_ws_ip__id.lib
+    instances:
+      chip_id:
+        location: [26, 26]
+        orientation: N
+
+  gf180mcu_ws_ip__logo:
+    gds:
+      - dir::../ip/gf180mcu_ws_ip__logo/gds/gf180mcu_ws_ip__logo.gds
+    lef:
+      - dir::../ip/gf180mcu_ws_ip__logo/lef/gf180mcu_ws_ip__logo.lef
+    vh:
+      - dir::../ip/gf180mcu_ws_ip__logo/vh/gf180mcu_ws_ip__logo.v
+    lib:
+      "*":
+        - dir::../ip/gf180mcu_ws_ip__logo/lib/gf180mcu_ws_ip__logo.lib
+    instances:
+      wafer_space_logo:
+        location: ["expr::$DIE_AREA[2] + -169.25", "expr::$DIE_AREA[3] + -169.25"]
+        orientation: N
+
+  gf180mcu_ws_ip__names:
+    gds:
+      - dir::../ip/gf180mcu_ws_ip__names/gds/gf180mcu_ws_ip__names.gds
+    lef:
+      - dir::../ip/gf180mcu_ws_ip__names/lef/gf180mcu_ws_ip__names.lef
+    vh:
+      - dir::../ip/gf180mcu_ws_ip__names/vh/gf180mcu_ws_ip__names.v
+    lib:
+      "*":
+        - dir::../ip/gf180mcu_ws_ip__names/lib/gf180mcu_ws_ip__names.lib
+    instances:
+      names:
+        location: [3762.75, 26]
+        orientation: N
+
+  gf180mcu_ws_ip__credits:
+    gds:
+      - dir::../ip/gf180mcu_ws_ip__credits/gds/gf180mcu_ws_ip__credits.gds
+    lef:
+      - dir::../ip/gf180mcu_ws_ip__credits/lef/gf180mcu_ws_ip__credits.lef
+    vh:
+      - dir::../ip/gf180mcu_ws_ip__credits/vh/gf180mcu_ws_ip__credits.v
+    lib:
+      "*":
+        - dir::../ip/gf180mcu_ws_ip__credits/lib/gf180mcu_ws_ip__credits.lib
+    instances:
+      credits:
+        location: [26, 4952.75]
+        orientation: N
+
+  gf180mcu_fd_ip_sram__sram512x8m8wm1:
+    gds:
+      - pdk_dir::libs.ref/gf180mcu_fd_ip_sram/gds/gf180mcu_fd_ip_sram__sram512x8m8wm1.gds
+    lef:
+      - pdk_dir::libs.ref/gf180mcu_fd_ip_sram/lef/gf180mcu_fd_ip_sram__sram512x8m8wm1.lef
+    vh:
+      - pdk_dir::libs.ref/gf180mcu_fd_ip_sram/verilog/gf180mcu_fd_ip_sram__sram512x8m8wm1__blackbox.v
+    lib:
+      # 5V
+      "*_tt_025C_5v00":
+        - pdk_dir::libs.ref/gf180mcu_fd_ip_sram/lib/gf180mcu_fd_ip_sram__sram512x8m8wm1__tt_025C_5v00.lib
+      "*_ff_n40C_5v50":
+        - pdk_dir::libs.ref/gf180mcu_fd_ip_sram/lib/gf180mcu_fd_ip_sram__sram512x8m8wm1__ff_n40C_5v50.lib
+      "*_ss_125C_4v50":
+        - pdk_dir::libs.ref/gf180mcu_fd_ip_sram/lib/gf180mcu_fd_ip_sram__sram512x8m8wm1__ss_125C_4v50.lib
+      # 3.3V
+      "*_tt_025C_3v30":
+        - pdk_dir::libs.ref/gf180mcu_fd_ip_sram/lib/gf180mcu_fd_ip_sram__sram512x8m8wm1__tt_025C_3v30.lib
+      "*_ss_n40C_3v00":
+        - pdk_dir::libs.ref/gf180mcu_fd_ip_sram/lib/gf180mcu_fd_ip_sram__sram512x8m8wm1__ss_n40C_3v00.lib
+      "*_ss_125C_3v00":
+        - pdk_dir::libs.ref/gf180mcu_fd_ip_sram/lib/gf180mcu_fd_ip_sram__sram512x8m8wm1__ss_125C_3v00.lib
+      "*_ff_n40C_3v60":
+        - pdk_dir::libs.ref/gf180mcu_fd_ip_sram/lib/gf180mcu_fd_ip_sram__sram512x8m8wm1__ff_n40C_3v60.lib
+      "*_ff_125C_3v60":
+        - pdk_dir::libs.ref/gf180mcu_fd_ip_sram/lib/gf180mcu_fd_ip_sram__sram512x8m8wm1__ff_125C_3v60.lib
+    instances:
+      # -------- TOP (N) – 5× way0 --------
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_0.u_prim":
+        location: [642, 4175]
+        orientation: N
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_1.u_prim":
+        location: [1221, 4175]
+        orientation: N
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_2.u_prim":
+        location: [1800, 4175]
+        orientation: N
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_3.u_prim":
+        location: [2379, 4175]
+        orientation: N
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_4.u_prim":
+        location: [2958, 4175]
+        orientation: N
+
+      # -------- RIGHT (E) --------
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_3.u_prim":
+        location: [2950, 1135]
+        orientation: E
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_2.u_prim":
+        location: [2950, 1620]
+        orientation: E
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_1.u_prim":
+        location: [2950, 2105]
+        orientation: E
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_0.u_prim":
+        location: [2950, 2590]
+        orientation: E
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_6.u_prim":
+        location: [2950, 3075]
+        orientation: E
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way0.u_tile_5.u_prim":
+        location: [2950, 3560]
+        orientation: E
+
+      # -------- BOTTOM (S) --------
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_0.u_prim":
+        location: [842, 462]
+        orientation: S
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_6.u_prim":
+        location: [1421, 462]
+        orientation: S
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_5.u_prim":
+        location: [2000, 462]
+        orientation: S
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_105_99_97_99_104_101_95_73.cache_I.u_mem_way1.u_tile_4.u_prim":
+        location: [2579, 462]
+        orientation: S
+
+      # -------- LEFT (W) --------
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_1.u_prim":
+        location: [462, 1135]
+        orientation: W
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_2.u_prim":
+        location: [462, 1620]
+        orientation: W
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_3.u_prim":
+        location: [462, 2105]
+        orientation: W
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_4.u_prim":
+        location: [462, 2590]
+        orientation: W
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_5.u_prim":
+        location: [462, 3075]
+        orientation: W
+      "i_chip_core.u_soc.cache_I.u_loom_u103_101_110_95_99_97_99_104_101_100_46_100_99_97_99_104_101_95_73.cache_D.u_mem.u_tile_6.u_prim":
+        location: [462, 3560]
+        orientation: W
+
+# Halo size around macros while cutting rows.
+# Workaround for: https://github.com/The-OpenROAD-Project/OpenROAD/issues/8868
+FP_MACRO_HORIZONTAL_HALO: 10
+FP_MACRO_VERTICAL_HALO: 10
+FP_PDN_HORIZONTAL_HALO: 5
+FP_PDN_VERTICAL_HALO: 5
+
+PDN_CFG: dir::pdn_cfg.loom.tcl
+
+# Make sure netgen doesn't create 'no_connect' nets
+# Not needed since netgen 1.5.303
+LVS_FLATTEN_CELLS:
+- gf180mcu_ws_ip__id
+- gf180mcu_ws_ip__logo
+- gf180mcu_ws_ip__names
+- gf180mcu_ws_ip__credits
+
+# gf180mcu_ws_ip__id/logo has no ports and components
+# therefore make it an abstract cell in the layout
+MAGIC_EXT_ABSTRACT_CELLS:
+- gf180mcu_ws_ip__id
+- gf180mcu_ws_ip__logo
+- gf180mcu_ws_ip__names
+- gf180mcu_ws_ip__credits

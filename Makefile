@@ -6,6 +6,7 @@ TOP = chip_top
 PDK_ROOT ?= $(MAKEFILE_DIR)/gf180mcu
 PDK ?= gf180mcuD
 PDK_TAG ?= 1.6.6
+LIBRELANE ?= librelane
 
 AVAILABLE_SLOTS = 1x1 0p5x1 1x0p5 0p5x0p5
 DEFAULT_SLOT = 1x1
@@ -39,11 +40,23 @@ clone-pdk: ## Clone the GF180MCU PDK repository
 .PHONY: clone-pdk
 
 librelane: ## Run LibreLane flow (synthesis, PnR, verification)
-	librelane librelane/slots/slot_${SLOT}.yaml librelane/config.yaml --pdk ${PDK} --pdk-root ${PDK_ROOT} --manual-pdk
+	$(LIBRELANE) librelane/slots/slot_${SLOT}.yaml librelane/config.yaml --pdk ${PDK} --pdk-root ${PDK_ROOT} --manual-pdk
 .PHONY: librelane
 
+verify-loom-handoff: ## Check the Loom RTL hashes and post-Yosys SRAM hierarchy
+	python3 reproduce/verify-loom-handoff.py
+.PHONY: verify-loom-handoff
+
+librelane-loom: verify-loom-handoff ## Run the physical flow with the checked Loom RTL
+	$(LIBRELANE) librelane/slots/slot_${SLOT}.yaml librelane/config.loom.yaml --pdk ${PDK} --pdk-root ${PDK_ROOT} --manual-pdk
+.PHONY: librelane-loom
+
+librelane-loom-nodrc: verify-loom-handoff ## Run the Loom flow without DRC checks
+	$(LIBRELANE) librelane/slots/slot_${SLOT}.yaml librelane/config.loom.yaml --pdk ${PDK} --pdk-root ${PDK_ROOT} --manual-pdk --skip KLayout.Antenna --skip KLayout.DRC --skip Magic.DRC
+.PHONY: librelane-loom-nodrc
+
 librelane-nodrc: ## Run LibreLane flow without DRC checks
-	librelane librelane/slots/slot_${SLOT}.yaml librelane/config.yaml --pdk ${PDK} --pdk-root ${PDK_ROOT} --manual-pdk --skip KLayout.Antenna --skip KLayout.DRC --skip Magic.DRC
+	$(LIBRELANE) librelane/slots/slot_${SLOT}.yaml librelane/config.yaml --pdk ${PDK} --pdk-root ${PDK_ROOT} --manual-pdk --skip KLayout.Antenna --skip KLayout.DRC --skip Magic.DRC
 .PHONY: librelane-nodrc
 
 librelane-klayoutdrc: ## Run LibreLane flow without magic DRC checks

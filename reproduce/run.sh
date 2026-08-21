@@ -48,6 +48,37 @@ preflight() {
   librelane --version
 }
 
+loom_preflight() {
+  git merge-base --is-ancestor "$TAPEOUT_COMMIT" HEAD ||
+    die "Loom branch is not descended from the known-good tapeout commit"
+  test -z "$(git status --porcelain --untracked-files=all)" ||
+    die "Loom fabrication runs require a clean, committed source tree"
+
+  local available_kib required_kib
+  available_kib=$(df -Pk . | awk 'NR == 2 {print $4}')
+  required_kib=$(( ${MIN_FREE_GIB:-80} * 1024 * 1024 ))
+  (( available_kib >= required_kib )) ||
+    die "less than ${MIN_FREE_GIB:-80} GiB free disk space"
+
+  local available_mem_kib required_mem_kib
+  available_mem_kib=$(awk '/MemAvailable:/ {print $2}' /proc/meminfo)
+  required_mem_kib=$(( ${MIN_MEMORY_GIB:-16} * 1024 * 1024 ))
+  (( available_mem_kib >= required_mem_kib )) ||
+    die "less than ${MIN_MEMORY_GIB:-16} GiB available memory"
+
+  python3 reproduce/verify-loom-handoff.py
+  local patch_root
+  patch_root=$(mktemp -d "${TMPDIR:-/tmp}/kianv-librelane-scripts.XXXXXX")
+  python3 reproduce/prepare-librelane-scripts.py "$patch_root/scripts"
+  export KIANV_LIBRELANE_SCRIPT_DIR="$patch_root/scripts"
+  export LIBRELANE=./reproduce/run-librelane-overlay.py
+  echo "Loom physical preflight passed"
+  echo "host architecture: $(uname -m)"
+  nix --version
+  yosys -V
+  "$LIBRELANE" --version
+}
+
 fetch_pdk() {
   if [ ! -d gf180mcu/.git ]; then
     git clone --depth 1 --branch "$PDK_TAG" https://github.com/wafer-space/gf180mcu.git gf180mcu
@@ -68,6 +99,25 @@ build_gds() {
   make copy-final
 }
 
+build_loom_gds() {
+  fetch_pdk
+  make SLOT=1x1 librelane-loom
+  local run_tag
+  run_tag=$(ls -1 librelane/runs | sort | tail -n 1)
+  make copy-final
+  test -s final/gds/chip_top.gds || die "Loom flow did not produce final GDS"
+  test -s final/metrics.json || die "Loom flow did not produce final metrics"
+  python3 reproduce/archive-loom-release.py "librelane/runs/$run_tag"
+}
+
+archive_loom_release() {
+  loom_preflight
+  local run_tag
+  run_tag=$(ls -1 librelane/runs | sort | tail -n 1)
+  test -n "$run_tag" || die "no LibreLane run is available to archive"
+  python3 reproduce/archive-loom-release.py "librelane/runs/$run_tag"
+}
+
 verify() {
   local comparison_mode=${1:-strict}
   test -f final/gds/chip_top.gds || die "final/gds/chip_top.gds is missing"
@@ -85,6 +135,13 @@ run_all() {
   build_gds
   verify allow-mismatch
   echo "all stages completed successfully"
+}
+
+run_loom_all() {
+  loom_preflight
+  build_loom_gds
+  echo "Loom physical flow completed successfully"
+  sha256sum final/gds/chip_top.gds final/metrics.json final/SHA256SUMS
 }
 
 compare_reference() {
@@ -143,11 +200,15 @@ PY
 stage=${1:-all}
 case "$stage" in
   preflight) preflight ;;
+  loom-preflight) loom_preflight ;;
   pdk) preflight; fetch_pdk ;;
   sim) preflight; simulate ;;
   gds) preflight; build_gds ;;
+  loom-gds) loom_preflight; build_loom_gds ;;
+  loom-archive) archive_loom_release ;;
   verify) preflight; verify ;;
   compare) preflight; compare_reference ;;
   all) run_all ;;
-  *) die "unknown stage '$stage' (expected preflight, pdk, sim, gds, verify, compare, or all)" ;;
+  loom-all) run_loom_all ;;
+  *) die "unknown stage '$stage' (expected preflight, loom-preflight, pdk, sim, gds, loom-gds, loom-archive, verify, compare, all, or loom-all)" ;;
 esac

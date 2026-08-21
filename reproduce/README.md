@@ -42,16 +42,39 @@ the network connection.
 | Command argument | Action | Successful exit status |
 | --- | --- | ---: |
 | `preflight` | Check commits, protected inputs, resources, tools, and reference hashes | 0 |
+| `loom-preflight` | Check Loom hashes, interface specialization, and all 21 post-Yosys SRAM paths | 0 |
 | `pdk` | Run preflight and acquire the pinned PDK | 0 |
 | `gds` | Run preflight, acquire the PDK, execute LibreLane, and copy final views | 0 |
+| `loom-gds` | Run Loom preflight and LibreLane, then build and verify the hashed final-view bundle | 0 |
+| `loom-archive` | Rebuild and verify the bundle for the latest completed Loom run | 0 |
 | `verify` | Check the generated hash and run XOR if it differs | 0 if identical; 2 if geometrically different |
 | `compare` | Run the reference-versus-generated geometric XOR directly | 0 if identical; 2 if different |
 | `all` | Run `preflight`, `gds`, and `verify` as the normal end-to-end workflow | 0 after a completed flow, including the documented ARM64 mismatch |
+| `loom-all` | Run the complete pinned Loom physical flow and hash its auditable release bundle | 0 after a completed, output-producing flow |
 | `sim` | Run the upstream tapeout testbench; currently expected to fail during elaboration | Nonzero currently |
 
 The `sim` stage is deliberately not part of the quick start or `all`. Its
 source list is incomplete, and upstream had disabled it in the tapeout CI. It
 is not required to reproduce the submitted physical artifact.
+
+The Loom conversion has a separate fabrication path because it intentionally
+differs from the submitted upstream RTL and cannot pass the byte-identical
+tapeout-input check used by `preflight`:
+
+```sh
+./reproduce/run-in-docker.sh loom-preflight
+./reproduce/run-in-docker.sh loom-all
+```
+
+The Loom preflight also applies a hash-checked temporary script overlay so the
+pinned LibreLane synthesis implementation honors its own
+`SYNTH_SHARE_RESOURCES: false` setting. The Nix store remains unchanged.
+It requires a clean, committed worktree so the release provenance also binds
+the top-level RTL, constraints, slot configuration, and runner/tool inputs.
+
+See [`../LOOM_PHYSICAL_FLOW.md`](../LOOM_PHYSICAL_FLOW.md) for artifact
+provenance, regeneration, and the required fabrication-release review. See
+[`LOOM_RESULTS.md`](LOOM_RESULTS.md) for complete-run evidence and comparisons.
 
 ## Expected result
 
@@ -73,7 +96,11 @@ Outputs are located at:
 
 - `final/gds/chip_top.gds`: final sealed and filled GDS
 - `final/metrics.json`: consolidated LibreLane metrics
-- `final/`: copied final DEF, ODB, SPEF, netlist, and other views
+- `final/spef/`: extracted min, nominal, and max parasitic views
+- `final/signoff/`: selected timing, IR, DRC, antenna, LVS, and manufacturability reports
+- `final/RELEASE_PROVENANCE.json`: run, source, PDK, and tool identity
+- `final/SHA256SUMS`: verified hashes for the complete final-view bundle
+- `final/`: copied DEF, ODB, netlist, SDC, and other final views
 - `librelane/runs/RUN_*`: complete step logs and reports
 
 The Nix store is retained in the Docker volume

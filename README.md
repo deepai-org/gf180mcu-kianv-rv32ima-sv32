@@ -2,6 +2,11 @@
 
 A 32-bit RISC-V Linux SoC taped out on GF180MCU.
 
+The fabrication-oriented Loom conversion and its pinned LibreLane entry point
+are documented in [LOOM_PHYSICAL_FLOW.md](LOOM_PHYSICAL_FLOW.md). Run
+`make verify-loom-handoff` before any physical flow and use
+`make SLOT=1x1 librelane-loom`, not the upstream RTL target, for that artifact.
+
 Really glad to get the MPW opportunity from [wafer.space](https://wafer.space)!
 
 ## Run xv6 in RTL simulation
