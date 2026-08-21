@@ -98,7 +98,8 @@ On the supported ARM64 Docker host:
 copies every final view to `final/`, requires nonempty GDS and metrics outputs,
 adds the min/nominal/max SPEFs and signoff reports, records tool/PDK/source
 provenance, fails closed on nonzero DRC/antenna/LVS/density/hold and related
-release metrics, verifies `final/SHA256SUMS`, and prints the bundle hashes. The
+release metrics, requires all 21 named SRAM diodes in the final netlist,
+verifies `final/SHA256SUMS`, and prints the bundle hashes. The
 equivalent command inside the pinned Nix
 environment is:
 

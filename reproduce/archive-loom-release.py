@@ -111,6 +111,13 @@ def main() -> None:
             raise SystemExit(f"release metric is absent: {name}")
         if metrics[name] != 0:
             raise SystemExit(f"release metric is nonzero: {name}={metrics[name]}")
+    final_netlist = (final_dir / "nl" / "chip_top.nl.v").read_text()
+    targeted_diodes = final_netlist.count("u_d6_antenna")
+    if targeted_diodes != 21:
+        raise SystemExit(
+            "final netlist does not retain exactly 21 targeted SRAM antenna "
+            f"diodes: found {targeted_diodes}"
+        )
 
     spef_dir = final_dir / "spef"
     spef_dir.mkdir(parents=True, exist_ok=True)
