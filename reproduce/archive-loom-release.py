@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import re
 import shutil
 import subprocess
 from pathlib import Path
@@ -112,7 +113,16 @@ def main() -> None:
         if metrics[name] != 0:
             raise SystemExit(f"release metric is nonzero: {name}={metrics[name]}")
     final_netlist = (final_dir / "nl" / "chip_top.nl.v").read_text()
-    targeted_diodes = final_netlist.count("u_d6_antenna")
+    # Yosys/OpenROAD may derive tie-cell names from a replaced instance (for
+    # example ``u_d6_antenna_14052``).  Count only retained antenna-cell
+    # instances whose escaped hierarchical name ends exactly in
+    # ``.u_d6_antenna``; a substring count incorrectly includes those tie
+    # cells and rejected the otherwise clean signoff run.
+    targeted_diodes = len(re.findall(
+        r"(?m)^\s*gf180mcu_fd_sc_mcu9t5v0__antenna\s+"
+        r"\\\S*\.u_d6_antenna\s+\(\.I\(",
+        final_netlist,
+    ))
     if targeted_diodes != 21:
         raise SystemExit(
             "final netlist does not retain exactly 21 targeted SRAM antenna "
