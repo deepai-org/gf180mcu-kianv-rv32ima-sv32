@@ -85,7 +85,62 @@ heuristic stage. Its post-Yosys preflight checks the exact cell and connection.
 
 ## Run 3: targeted repair
 
-The targeted physical RTL SHA-256 is
-`a7cc437452ec765ffbe79372f0cb5d83b311102a5d4f02ba91d5129c87cb3d14`.
-The complete targeted route is the remaining release gate. Its result must be
-recorded here after all foundry-deck, LVS, timing, and artifact checks finish.
+- Run directory: `RUN_2026-08-21_20-05-51`
+- Wall time: 6 hours 15 minutes
+- Physical RTL SHA-256:
+  `a7cc437452ec765ffbe79372f0cb5d83b311102a5d4f02ba91d5129c87cb3d14`
+- Final filled GDS SHA-256:
+  `df2f67af3a3422aeeda9d9e047bde7be694d1228aeb9aa8f6afec4af0fcd5fe6`
+- Final metrics SHA-256:
+  `d9a2e34a4a0c3a43265dc4c6dc53b33e22b44df3168b588921898b3620b944a8`
+- Release checksum-list SHA-256:
+  `b6b6240d472a34c45d08ab0b83ed6a56fccfc7b75cff44a405251e5b27ca370e`
+- Release status: **physical release gate passed; electrical exceptions below
+  still require an explicit tapeout decision**
+
+Run 3 completed all 78 stages and the 75-file release archive verified every
+checksum. The final netlist retains exactly 21 source-level SRAM `D[6]`
+antenna cells; normal routed-net repair brings the reported antenna-cell class
+to 156 and `antenna_diodes_count` to 108. These broader counts include ordinary
+flow-inserted antenna cells and do not indicate a return of Run 2's forbidden
+99,124-cell heuristic.
+
+The fabrication-geometry and connectivity results are clean:
+
+- OpenROAD detailed-route DRC and antenna: 0.
+- KLayout foundry antenna, full DRC, and density: 0.
+- Magic DRC and illegal overlaps: 0.
+- GDS/DEF XOR differences: 0.
+- Netgen LVS: circuits match uniquely; every LVS error, device/net difference,
+  unmatched object, and property-failure metric is 0.
+- Power-grid violations: 0; worst nominal IR drop is 28.47 uV on VDD and
+  27.71 uV on VSS.
+- Hold WNS/TNS: 0 at every corner.
+- The rendered GDS shows the intended sealed pad ring and placed SRAM banks;
+  the database reports 25 macros, including the expected 21 SRAMs.
+
+The design is not conventional all-corner electrical signoff at 33 ns. It
+meets setup in TT and fast corners but violates all six 3.00 V slow-corner
+views. Worst setup is -24.4286 ns WNS / -154534.27 ns TNS at
+`max_ss_125C_3v00`. The aggregate post-route metrics also report 7,329
+max-slew, 2,774 max-capacitance, and 479 max-fanout violations. These are real
+exceptions to review, even though the known upstream reproduction has the
+same slow-corner pattern and substantial electrical violations.
+
+### Run 3 comparison
+
+| Metric | Upstream reproduction | Loom Run 1 | Loom Run 3 | Run 3 vs upstream |
+| --- | ---: | ---: | ---: | ---: |
+| Standard cells | 135,941 | 143,539 | 142,487 | +4.82% |
+| Standard-cell area | 3,855,640 | 4,024,560 | 3,967,540 | +2.90% |
+| Routed wire length | 9,626,558 | 11,374,736 | 10,393,637 | +7.97% |
+| Worst setup WNS (`max_ss_125C_3v00`) | -21.0179 ns | -24.7227 ns | -24.4286 ns | -3.4107 ns |
+| Worst max-slew count | 5,998 | 7,334 | 7,329 | +22.19% |
+| Worst max-capacitance count | 2,737 | 3,202 | 2,774 | +1.35% |
+| Worst nominal IR drop, VDD | 30.95 uV | 22.85 uV | 28.47 uV | -8.01% |
+| Worst nominal IR drop, VSS | 26.90 uV | 23.85 uV | 27.71 uV | +3.01% |
+
+Relative to Run 1, the targeted result uses 0.73% fewer cells, 1.42% less
+standard-cell area, and 8.63% less routed wire, while also clearing both
+foundry-deck failure classes. The source and final evidence are recorded in
+`final/RELEASE_PROVENANCE.json`, `final/signoff/`, and `final/SHA256SUMS`.

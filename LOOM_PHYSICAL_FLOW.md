@@ -74,8 +74,24 @@ physical wrapper now retains one GF180 antenna diode on `D[6]` for each of the
 21 SRAMs, and the config extends macro routing blockages by one global-routing
 cell. A diagnostic 130-unit heuristic threshold inserted 99,124 diodes and is
 explicitly forbidden by the verifier. The bounded implementation-only repair
-is hash-bound in the manifest. A clean complete rerun remains the fabrication
-release gate.
+is hash-bound in the manifest.
+
+The targeted `RUN_2026-08-21_20-05-51` rerun passed the physical release gate:
+OpenROAD route DRC/antenna, KLayout antenna/DRC/density, Magic DRC/overlap,
+GDS/DEF XOR, power-grid connectivity, hold timing, and every LVS mismatch
+metric are zero. The generated release contains 75 checksum-verified files.
+The rendered filled GDS contains the intended pad ring and macro banks. Exact
+hashes and measurements are in
+[`reproduce/LOOM_RESULTS.md`](reproduce/LOOM_RESULTS.md).
+
+This is a geometry- and connectivity-clean reproduction, not an all-corner
+timing-clean claim. At the inherited 33 ns constraint it passes TT and fast
+setup but fails all six 3.00 V slow-corner views; worst setup WNS is
+-24.4286 ns. Post-route max-slew and max-capacitance counts are also nonzero.
+The pinned upstream reproduction shows the same slow-corner pattern. Treat
+those electrical results as an explicit tapeout exception, or revise the
+frequency/constraints and rerun, rather than interpreting the archive pass as
+a blanket foundry waiver.
 
 Complete-run measurements and failed-closed diagnostics are recorded in
 [`reproduce/LOOM_RESULTS.md`](reproduce/LOOM_RESULTS.md).

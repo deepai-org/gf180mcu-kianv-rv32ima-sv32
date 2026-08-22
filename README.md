@@ -6,6 +6,10 @@ The fabrication-oriented Loom conversion and its pinned LibreLane entry point
 are documented in [LOOM_PHYSICAL_FLOW.md](LOOM_PHYSICAL_FLOW.md). Run
 `make verify-loom-handoff` before any physical flow and use
 `make SLOT=1x1 librelane-loom`, not the upstream RTL target, for that artifact.
+The recorded targeted run clears DRC, antenna, density, XOR, power-grid, hold,
+and LVS release gates; its remaining slow-corner setup and slew/capacitance
+exceptions are stated explicitly in
+[`reproduce/LOOM_RESULTS.md`](reproduce/LOOM_RESULTS.md).
 
 Really glad to get the MPW opportunity from [wafer.space](https://wafer.space)!
 
